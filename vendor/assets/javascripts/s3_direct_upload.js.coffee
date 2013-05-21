@@ -1,4 +1,5 @@
 #= require jquery-fileupload/basic
+#= require jquery-fileupload/jquery.fileupload-ui
 #= require jquery-fileupload/vendor/tmpl
 
 $ = jQuery
@@ -22,6 +23,8 @@ $.fn.S3Uploader = (options) ->
     remove_failed_progress_bar: false
     progress_bar_target: null
     click_submit_target: null
+    update_progress: null
+    upload_finished: null
 
   $.extend settings, options
 
@@ -34,7 +37,6 @@ $.fn.S3Uploader = (options) ->
 
   setUploadForm = ->
     $uploadForm.fileupload
-
       add: (e, data) ->
         file = data.files[0]
         file.unique_id = Math.random().toString(36).substr(2,16)
@@ -54,9 +56,13 @@ $.fn.S3Uploader = (options) ->
       progress: (e, data) ->
         if data.context
           progress = parseInt(data.loaded / data.total * 100, 10)
-          data.context.find('.bar').css('width', progress + '%')
+          if settings.update_progress
+            settings.update_progress(data.context, progress) 
+          else
+            data.context.find('.bar').css('width', progress + '%')
 
       done: (e, data) ->
+        settings.upload_finished(data.context) if settings.upload_finished
         content = build_content_object $uploadForm, data.files[0], data.result
 
         callback_url = $uploadForm.data('callback-url')
@@ -136,3 +142,4 @@ $.fn.S3Uploader = (options) ->
     settings.additional_data = new_data
 
   @initialize()
+
