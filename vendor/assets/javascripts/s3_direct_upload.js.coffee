@@ -39,19 +39,12 @@ $.fn.S3Uploader = (options) ->
       false
 
   originalAdd = $.blueimp.fileupload.prototype.options.add
-  
-  @currentFile = 0
-  
+    
   setUploadForm = =>
     $uploadForm.fileupload
       acceptFileTypes: settings.acceptFileTypes
       dataType: "xml"
       add: (e, data) =>
-        console.log("add called with:", e, data)
-        if @currentFile == data.originalFiles.length - 1
-          console.log("LAST FILE")
-        else
-          @currentFile += 1
      
         originalAdd.call(this, e, data);
              
