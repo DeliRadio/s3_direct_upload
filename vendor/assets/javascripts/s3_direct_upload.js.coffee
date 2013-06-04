@@ -7,12 +7,9 @@
 $ = jQuery
 
 $.fn.S3Uploader = (options) ->
-
   # support multiple elements
   if @length > 1
-    @each ->
-      $(this).S3Uploader options
-
+    @each -> $(this).S3Uploader options
     return this
 
   $uploadForm = this
@@ -31,33 +28,34 @@ $.fn.S3Uploader = (options) ->
 
   $.extend settings, options
 
-  current_files = []
-  forms_for_submit = []
+  @current_files = []
+  @forms_for_submit = []
+
   if settings.click_submit_target
-    settings.click_submit_target.click ->
-      form.submit() for form in forms_for_submit
+    settings.click_submit_target.click =>
+      form.submit() for form in @forms_for_submit
       false
 
   originalAdd = $.blueimp.fileupload.prototype.options.add
-    
+
   setUploadForm = =>
     $uploadForm.fileupload
       acceptFileTypes: settings.acceptFileTypes
       dataType: "xml"
       add: (e, data) =>
-     
+
         # Call the original fileupload add to trigger validations
-        originalAdd.call(this, e, data);
-             
+        originalAdd.call(this, e, data)
+
         file = data.files[0]
         file.unique_id = Math.random().toString(36).substr(2,16)
 
         unless settings.before_add and not settings.before_add(file) or file.hasOwnProperty('error')
-          current_files.push data
+          @current_files.push data
           data.context = $($.trim(tmpl("template-upload", file))) if $('#template-upload').length > 0
           $(data.context).appendTo(settings.progress_bar_target || $uploadForm)
           if settings.click_submit_target
-           forms_for_submit.push data
+           @forms_for_submit.push data
           else
             data.submit()
 
@@ -72,7 +70,7 @@ $.fn.S3Uploader = (options) ->
           else
             data.context.find('.bar').css('width', progress + '%')
 
-      done: (e, data) ->
+      done: (e, data) =>
         settings.upload_finished(data.context) if settings.upload_finished
         content = build_content_object $uploadForm, data.files[0], data.result
 
@@ -92,8 +90,8 @@ $.fn.S3Uploader = (options) ->
         data.context.remove() if data.context && settings.remove_completed_progress_bar # remove progress bar
         $uploadForm.trigger("s3_upload_complete", [content])
 
-        current_files.splice($.inArray(data, current_files), 1) # remove that element from the array
-        $uploadForm.trigger("s3_uploads_complete", [content]) unless current_files.length
+        @current_files.splice($.inArray(data, @current_files), 1) # remove that element from the array
+        $uploadForm.trigger("s3_uploads_complete", [content]) unless @current_files.length
 
       fail: (e, data) ->
         content = build_content_object $uploadForm, data.files[0], data.result
@@ -140,7 +138,6 @@ $.fn.S3Uploader = (options) ->
   build_relativePath = (file) ->
     file.relativePath || (file.webkitRelativePath.split("/")[0..-2].join("/") + "/" if file.webkitRelativePath)
 
-
   #public methods
   @initialize = ->
     setUploadForm()
@@ -151,6 +148,10 @@ $.fn.S3Uploader = (options) ->
 
   @additional_data = (new_data) ->
     settings.additional_data = new_data
+
+  @removeItemAtIndex = (index) =>
+    @forms_for_submit.splice(index, 1)
+    @current_files.splice(index, 1)
 
   @initialize()
 
