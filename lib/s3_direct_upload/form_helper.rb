@@ -25,6 +25,7 @@ module S3DirectUpload
           callback_method: "POST",
           callback_param: "file",
           key_starts_with: @key_starts_with,
+          success_action_redirect: options[:success_action_redirect],
           key: key
         )
       end
@@ -52,6 +53,7 @@ module S3DirectUpload
           :policy => policy,
           :signature => signature,
           :success_action_status => "201",
+          :success_action_redirect => @options[:success_action_redirect],
           'X-Requested-With' => 'xhr'
         }
       end
@@ -77,6 +79,7 @@ module S3DirectUpload
             ["starts-with", "$x-requested-with", ""],
             ["content-length-range", 0, @options[:max_file_size]],
             ["starts-with","$content-type",""],
+            ["starts-with","$success_action_redirect",""],
             {bucket: @options[:bucket]},
             {acl: @options[:acl]},
             {success_action_status: "201"}
